@@ -453,8 +453,8 @@ exports.BattleAbilities = {
 		num: 6
 	},
 	"darkaura": {
-		desc: "Increases the power of all Dark-type moves in battle to 1.3x.",
-		shortDesc: "Increases the power of all Dark-type moves in battle to 1.3x.",
+		desc: "Increases the power of all Dark-type moves in battle to 1.33x.",
+		shortDesc: "Increases the power of all Dark-type moves in battle to 1.33x.",
 		onStart: function(pokemon) {
 			this.add('-ability', pokemon, 'Dark Aura');
 		},
@@ -462,19 +462,19 @@ exports.BattleAbilities = {
 		onAnyBasePower: function(basePower, attacker, defender, move) {
 			var reverseAura = false;
 			for (var p in attacker.side.active) {
-				if (attacker.side.active[p] && attacker.side.active[p].ability === 'aurabreak') {
+				if (attacker.side.active[p] && attacker.side.active[p].hasAbility('aurabreak')) {
 					reverseAura = true;
 					this.debug('Reversing Dark Aura due to Aura Break');
 				}
 			}
 			for (var p in defender.side.active) {
-				if (defender.side.active[p] && defender.side.active[p].ability === 'aurabreak') {
+				if (defender.side.active[p] && defender.side.active[p].hasAbility('aurabreak')) {
 					reverseAura = true;
 					this.debug('Reversing Dark Aura due to Aura Break');
 				}
 			}
 			if (move.type === 'Dark') {
-				return this.chainModify(reverseAura? 0.75 : 1.3);
+				return this.chainModify(reverseAura? 0.75 : 4/3);
 			}
 		},
 		id: "darkaura",
@@ -629,8 +629,8 @@ exports.BattleAbilities = {
 		num: 27
 	},
 	"fairyaura": {
-		desc: "Increases the power of all Fairy-type moves in battle to 1.3x.",
-		shortDesc: "Increases the power of all Fairy-type moves in battle to 1.3x.",
+		desc: "Increases the power of all Fairy-type moves in battle to 1.33x.",
+		shortDesc: "Increases the power of all Fairy-type moves in battle to 1.33x.",
 		onStart: function(pokemon) {
 			this.add('-ability', pokemon, 'Fairy Aura');
 		},
@@ -638,19 +638,19 @@ exports.BattleAbilities = {
 		onAnyBasePower: function(basePower, attacker, defender, move) {
 			var reverseAura = false;
 			for (var p in attacker.side.active) {
-				if (attacker.side.active[p] && attacker.side.active[p].ability === 'aurabreak') {
+				if (attacker.side.active[p] && attacker.side.active[p].hasAbility('aurabreak')) {
 					reverseAura = true;
 					this.debug('Reversing Fairy Aura due to Aura Break');
 				}
 			}
 			for (var p in defender.side.active) {
-				if (defender.side.active[p] && defender.side.active[p].ability === 'aurabreak') {
+				if (defender.side.active[p] && defender.side.active[p].hasAbility('aurabreak')) {
 					reverseAura = true;
 					this.debug('Reversing Fairy Aura due to Aura Break');
 				}
 			}
 			if (move.type === 'Fairy') {
-				return this.chainModify(reverseAura? 0.75 : 1.3);
+				return this.chainModify(reverseAura? 0.75 : 4/3);
 			}
 		},
 		id: "fairyaura",
@@ -1548,7 +1548,7 @@ exports.BattleAbilities = {
 				return;
 			}
 			for (var i=0; i<allyActive.length; i++) {
-				if (allyActive[i] && allyActive[i].position !== pokemon.position && !allyActive[i].fainted && (allyActive[i].ability === 'minus' || allyActive[i].ability === 'plus')) {
+				if (allyActive[i] && allyActive[i].position !== pokemon.position && !allyActive[i].fainted && allyActive[i].hasAbility(['minus', 'plus'])) {
 					return this.chainModify(1.5);
 				}
 			}
@@ -1677,7 +1677,7 @@ exports.BattleAbilities = {
 		name: "Mummy",
 		onAfterDamage: function(damage, target, source, move) {
 			if (source && source !== target && move && move.isContact) {
-				if (source.setAbility('mummy')) {
+				if (source.setAbility('mummy', source, 'mummy', true)) {
 					this.add('-ability', source, 'Mummy', '[from] Mummy');
 				}
 			}
@@ -1699,13 +1699,11 @@ exports.BattleAbilities = {
 	"noguard": {
 		desc: "Every attack used by or against this Pokemon will always hit, even during evasive two-turn moves such as Fly and Dig.",
 		shortDesc: "Every move used by or against this Pokemon will always hit.",
-		onModifyMove: function(move) {
-			move.accuracy = true;
-			move.alwaysHit = true;
-		},
-		onSourceModifyMove: function(move) {
-			move.accuracy = true;
-			move.alwaysHit = true;
+		onAnyAccuracy: function(accuracy, target, source, move) {
+			if (move && (source === this.effectData.target || target === this.effectData.target)) {
+				return true;
+			}
+			return accuracy;
 		},
 		id: "noguard",
 		name: "No Guard",
@@ -1911,7 +1909,7 @@ exports.BattleAbilities = {
 				return;
 			}
 			for (var i=0; i<allyActive.length; i++) {
-				if (allyActive[i] && allyActive[i].position !== pokemon.position && !allyActive[i].fainted && (allyActive[i].ability === 'minus' || allyActive[i].ability === 'plus')) {
+				if (allyActive[i] && allyActive[i].position !== pokemon.position && !allyActive[i].fainted && allyActive[i].hasAbility(['minus', 'plus'])) {
 					return this.chainModify(1.5);
 				}
 			}
@@ -2001,7 +1999,7 @@ exports.BattleAbilities = {
 		desc: "Right before this Pokemon uses a move, it changes its type to match that move. Hidden Power is interpreted as its Hidden Power type, rather than Normal.",
 		shortDesc: "Right before this Pokemon uses a move, it changes its type to match that move.",
 		onBeforeMove: function(pokemon, target, move) {
-			if (!move) return;
+			if (!move || pokemon.volatiles.mustrecharge) return;
 			var moveType = (move.id === 'hiddenpower' ? pokemon.hpType : move.type);
 			if (pokemon.getTypes().join() !== moveType) {
 				if (!pokemon.setType(moveType)) return false;
@@ -2280,12 +2278,12 @@ exports.BattleAbilities = {
 		desc: "When this Pokemon enters the field, its non-Ghost-type opponents cannot switch or flee the battle unless they have the same ability, are holding Shed Shell, or they use the moves Baton Pass or U-Turn.",
 		shortDesc: "Prevents foes from switching out normally unless they also have this Ability.",
 		onFoeModifyPokemon: function(pokemon) {
-			if (pokemon.ability !== 'shadowtag') {
+			if (!pokemon.hasAbility('shadowtag')) {
 				pokemon.tryTrap();
 			}
 		},
 		onFoeMaybeTrapPokemon: function(pokemon) {
-			if (pokemon.ability !== 'shadowtag') {
+			if (!pokemon.hasAbility('shadowtag')) {
 				pokemon.maybeTrapped = true;
 			}
 		},
@@ -2393,14 +2391,14 @@ exports.BattleAbilities = {
 			},
 			onModifyAtkPriority: 5,
 			onModifyAtk: function(atk, pokemon) {
-				if (pokemon.ability !== 'slowstart') {
+				if (!pokemon.hasAbility('slowstart')) {
 					pokemon.removeVolatile('slowstart');
 					return;
 				}
 				return this.chainModify(0.5);
 			},
 			onModifySpe: function(speMod, pokemon) {
-				if (pokemon.ability !== 'slowstart') {
+				if (!pokemon.hasAbility('slowstart')) {
 					pokemon.removeVolatile('slowstart');
 					return;
 				}
@@ -2997,7 +2995,7 @@ exports.BattleAbilities = {
 			move.ignoreDefensive = true;
 		},
 		onSourceModifyMove: function(move, user, target) {
-			if (user.ability === 'moldbreaker' || user.ability === 'turboblaze' || user.ability === 'teravolt') return;
+			if (user.hasAbility(['moldbreaker', 'turboblaze', 'teravolt'])) return;
 			move.ignoreAccuracy = true;
 			move.ignoreOffensive = true;
 		},
@@ -3015,7 +3013,7 @@ exports.BattleAbilities = {
 		},
 		effect: {
 			onModifySpe: function(speMod, pokemon) {
-				if (pokemon.ability !== 'unburden') {
+				if (!pokemon.hasAbility('unburden')) {
 					pokemon.removeVolatile('unburden');
 					return;
 				}
@@ -3213,7 +3211,7 @@ exports.BattleAbilities = {
 				}
 			},
 			onUpdate: function(pokemon) {
-				if (pokemon.ability !== 'zenmode') {
+				if (!pokemon.hasAbility('zenmode')) {
 					pokemon.transformed = false;
 					pokemon.removeVolatile('zenmode');
 				}

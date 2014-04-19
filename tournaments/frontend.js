@@ -1,22 +1,14 @@
 require('es6-shim');
 
+const DEBUG = false;
+
 var TournamentGenerators = {
 	roundrobin: require('./generator-round-robin.js').RoundRobin,
 	elimination: require('./generator-elimination.js').Elimination
-	};
+};
+
 exports.tournaments = {};
 
- function getRandwinMessage() {
-var fs = require('fs');
-var path = require('path');
-var data = fs.readFileSync('config/tourwins.txt', 'utf8'); 
-var line = data.split('\n');
-var m = String(line[Math.floor(Math.random()*line.length)]);
-if(m.length<1){
-m = line[0];
-}
-return m;
-}
 function usersToNames(users) {
 	return users.map(function (user) { return user.name; });
 }
@@ -181,7 +173,8 @@ var Tournament = (function () {
 		// "Ghost" users sometimes end up in the tournament because they've merged with another user.
 		// This function is to remove those ghost users from the tournament.
 		this.generator.getUsers().forEach(function (user) {
-			if (!Users.getExact(user.userid))
+			var realUser = Users.getExact(user.userid);
+			if (!realUser || realUser !== user)
 				// The two following functions are called without their second argument,
 				// but the second argument will not be used in this situation
 				if (this.isTournamentStarted) {
@@ -193,7 +186,7 @@ var Tournament = (function () {
 	};
 
 	Tournament.prototype.addUser = function (user, isAllowAlts, output) {
-		if (!isAllowAlts) {
+		if (!isAllowAlts && DEBUG === false) {
 			var users = {};
 			this.generator.getUsers().forEach(function (user) { users[user.name] = 1; });
 			var alts = user.getAlts();
@@ -465,7 +458,7 @@ var Tournament = (function () {
 		this.isBracketInvalidated = true;
 		this.update();
 	};
-	Tournament.prototype.cancelChallenge = function (user) {
+	Tournament.prototype.cancelChallenge = function (user, output) {
 		if (!this.isTournamentStarted) {
 			output.sendReply('|tournament|error|NotStarted');
 			return;
@@ -486,7 +479,7 @@ var Tournament = (function () {
 		this.isAvailableMatchesInvalidated = true;
 		this.update();
 	};
-	Tournament.prototype.acceptChallenge = function (user) {
+	Tournament.prototype.acceptChallenge = function (user, output) {
 		if (!this.isTournamentStarted) {
 			output.sendReply('|tournament|error|NotStarted');
 			return;
@@ -505,12 +498,14 @@ var Tournament = (function () {
 			// Prevent double accepts
 			return;
 
+		var room = Rooms.global.startBattle(challenge.from, user, this.format, this.isRated, challenge.team, user.team);
+		if (!room) return;
+
 		this.pendingChallenges.set(challenge.from, null);
 		this.pendingChallenges.set(user, null);
 		challenge.from.sendTo(this.room, '|tournament|update|{"challenging":null}');
 		user.sendTo(this.room, '|tournament|update|{"challenged":null}');
 
-		var room = Rooms.global.startBattle(challenge.from, user, this.format, this.isRated, challenge.team, user.team);
 		this.inProgressMatches.set(challenge.from, {to: user, room: room});
 		this.room.add('|tournament|battlestart|' + challenge.from.name + '|' + user.name + '|' + room.id);
 
@@ -524,23 +519,33 @@ var Tournament = (function () {
 		};
 	};
 	Tournament.prototype.onBattleWin = function (room, winner) {
-		  var from = Users.get(room.p1);
-		  var to = Users.get(room.p2);
-          var result = 'draw';
-		  var w = '';
+		var from = Users.get(room.p1);
+		var to = Users.get(room.p2);
+
+		var result = 'draw';
 		if (from === winner) {
-			w = from.name;
-			l = to.name;
 			result = 'win';
-		   }
-		else if (to === winner) {
-			w = to.name;
-			l = from.name;
+			var elo = Utilities.calcElo(from, to);
+			if (elo[0] === undefined) elo[0] = 1000;
+			if (elo[1] === undefined) elo[1] = 1000;
+			io.stdoutString('db/elo.csv', from, 'elo', elo[0]);
+			setTimeout(function() {
+				io.stdoutString('db/elo.csv', to, 'elo', elo[1]);
+			}, 1000);
+		} else if (to === winner) {
 			result = 'loss';
-           } 
+			var elo = Utilities.calcElo(to, from);
+			if (elo[0] === undefined) elo[0] = 1000;
+			if (elo[1] === undefined) elo[1] = 1000;
+			io.stdoutString('db/elo.csv', to, 'elo', elo[0]);
+			setTimeout(function() {
+				io.stdoutString('db/elo.csv', from, 'elo', elo[1]);
+			}, 1000);
+		}
 
 		if (result === 'draw' && !this.generator.isDrawingSupported) {
-			this.room.add('|raw|<b>' + w + 'tied against' + l + ' in their tournament battle.</b>');
+			this.room.add('|tournament|battleend|' + from.name + '|' + to.name + '|' + result + '|' + room.battle.score.join(',') + '|fail');
+
 			this.generator.setUserBusy(from, false);
 			this.generator.setUserBusy(to, false);
 			this.inProgressMatches.set(from, null);
@@ -550,15 +555,17 @@ var Tournament = (function () {
 
 			this.update();
 			return;
-		} 
-        this.room.add('|raw|<b>' + w + ' ' + getRandwinMessage() + ' ' + l + ' in their tournament battle.</b>');
+		}
+
 		var isTournamentEnded = this.generator.setMatchResult([from, to], result, room.battle.score);
 		if (typeof isTournamentEnded === 'string') {
 			// Should never happen
 			this.room.add("Unexpected " + isTournamentEnded + " from setMatchResult() in onBattleWin(" + room.id + ", " + winner.userid + "). Please report this to an admin.");
 			return;
 		}
-		
+
+		this.room.add('|tournament|battleend|' + from.name + '|' + to.name + '|' + result + '|' + room.battle.score.join(','));
+
 		this.generator.setUserBusy(from, false);
 		this.generator.setUserBusy(to, false);
 		this.inProgressMatches.set(from, null);
@@ -573,31 +580,49 @@ var Tournament = (function () {
 	};
 	Tournament.prototype.onTournamentEnd = function () {
 		this.room.add('|tournament|end|' + JSON.stringify({results: this.generator.getResults().map(usersToNames), bracketData: this.getBracketData()}));
-		
 		data = {results: this.generator.getResults().map(usersToNames), bracketData: this.getBracketData()};
 		data = data['results'].toString();
-		data = data.split(',');
-		var w = data[0];
-		if(data[1]) {
-		var sp = data[1]
+		runnerUp = false;
+		if (data.indexOf(',') >= 0) { 
+			data = data.split(',');
+			winner = data[0];
+			if (data[1]) runnerUp = data[1];
+		} else {
+			winner = data;
 		}
-		var size = this.generator.users.size;
-		var moneywon = true;
-		if(size < 4) {
-		moneywon = false;
-		}
-		if(moneywon) {
-		var moneyWon = Math.floor(size/4);
+		tourSize = this.generator.users.size;
+		var amountPlayers = 4;
+		if (DEBUG === true) {
+			amountPlayers = 2;
 		} 
-		else {
-		var moneyWon = 0;
+		if (this.room.isOfficial && tourSize >= amountPlayers) {
+			firstMoney = Math.round(tourSize/5);
+			secondMoney = Math.round(firstMoney/4);
+			firstBuck = 'buck';
+			secondBuck = 'buck';
+			if (firstMoney > 1) firstBuck = 'bucks';
+			if (secondMoney > 1) secondBuck = 'bucks';
+			this.room.add('|raw|<b><font color=#24678d>'+sanitize(winner)+'</font> has also won <font color=#24678d>'+firstMoney+'</font> '+firstBuck+' for winning the tournament!</b>');
+			if (runnerUp) this.room.add('|raw|<b><font color=#24678d>'+sanitize(runnerUp)+'</font> has also won <font color=#24678d>'+secondMoney+'</font> '+secondBuck+' for winning the tournament!</b>');
+			var winnerUser = Users.get(toUserid(winner));
+			var secondUser = Users.get(toUserid(runnerUp));
+			if (winnerUser === undefined) {
+				this.room.add('Error: winner is undefined');
+			} else if (secondUser === undefined){
+				this.room.add('Error: runnerUp is undefined');
+			}else {
+				io.stdoutNumber('db/money.csv', winnerUser, 'money', firstMoney);
+				fs.appendFile('logs/transactions.log', '\n' + Date() + ': ' + winner + ' won ' + firstMoney + ' ' + firstBuck + ' from a tournament in ' + this.room.title + '.');
+				if (runnerUp) {
+					setTimeout(function() {
+						io.stdoutNumber('db/money.csv', secondUser, 'money', secondMoney);
+						fs.appendFile('logs/transactions.log', '\n' + Date() + ': ' + runnerUp + ' won ' + secondMoney + ' ' + secondBuck + ' from a tournament in ' + this.room.title + '.');
+					}, 1000);
+				}
+				io.stdoutNumber('db/tourWins.csv', winnerUser, 'tourWins', 1);
+			}
 		}
-		var d = 'dollar';
-		if(moneyWon > 1 || moneyWon === 0) {
-		var d = 'dollars';
-		}
-		this.room.add('|raw|<b><font color="#fbbceb" face="georgia">'+utils.escapeHTML(w)+'</font> has also won <font color="#fbbceb">'+moneyWon+'</font> '+d+' for winning the tournament!</b>');
-			delete exports.tournaments[toId(this.room.id)];
+		delete exports.tournaments[toId(this.room.id)];
 	};
 
 	return Tournament;
@@ -627,10 +652,10 @@ var commands = {
 			tournament.challenge(user, targetUser, this);
 		},
 		cancelchallenge: function (tournament, user) {
-			tournament.cancelChallenge(user);
+			tournament.cancelChallenge(user, this);
 		},
 		acceptchallenge: function (tournament, user) {
-			tournament.acceptChallenge(user);
+			tournament.acceptChallenge(user, this);
 		}
 	},
 	creation: {
@@ -660,25 +685,7 @@ var commands = {
 		stop: 'delete',
 		delete: function (tournament) {
 			deleteTournament(tournament.room.title, this);
-		},
-		remind: function (tournament, user) {
-			var users = tournament.generator.getAvailableMatches().toString().split(',');
-			var offlineUsers = new Array();
-			for (var u in users) {
-				targetUser = Users.get(users[u]);
-				if (!targetUser) { 
-					offlineUsers.push(users[u]);
-					continue;
-				} else if (!targetUser.connected) {
-					offlineUsers.push(targetUser.userid);
-					continue;
-				} else {
-					targetUser.popup('You have a tournament battle in the room "'+tournament.room.title+'". If you do not start soon you may be disqualified.');
-				}
-			}
-			tournament.room.addRaw('<b>Players have been reminded of their tournament battles by '+user.name+'.</b>');
-			if (offlineUsers.length > 0 && offlineUsers != '') tournament.room.addRaw('<b>The following users are currently offline: '+offlineUsers+'.</b>');
-		},
+		}
 	}
 };
 
@@ -699,13 +706,23 @@ CommandParser.commands.tournament = function (paramString, room, user) {
 			tournament = exports.tournaments[tournament];
 			return {room: tournament.room.title, format: tournament.format, generator: tournament.generator.name, isStarted: tournament.isTournamentStarted};
 		})));
-	}  else if (cmd === 'create' || cmd === 'new') {
-		if (!user.can('tournaments', null, room))
+	} else if (cmd === 'help') {
+		if (!this.canBroadcast()) return;
+		return this.sendReplyBox(
+			"- create/new &lt;format>, &lt;type> [, &lt;comma-separated arguments>]: Creates a new tournament in the current room.<br />" +
+			"- settype &lt;type> [, &lt;comma-separated arguments>]: Modifies the type of tournament after it's been created, but before it has started.<br />" +
+			"- end/stop/delete: Forcibly ends the tournament in the current room.<br />" +
+			"- begin/start: Starts the tournament in the current room.<br />" +
+			"- dq/disqualify &lt;user>: Disqualifies a user.<br />" +
+			"More detailed help can be found <a href=\"https://gist.github.com/kotarou3/7872574\">here</a>"
+		);
+	} else if (cmd === 'create' || cmd === 'new') {
+		if (!user.can('tournaments', room))
 			return this.sendReply(cmd + " -  Access denied.");
 		if (params.length < 2)
 			return this.sendReply("Usage: " + cmd + " <format>, <type> [, <comma-separated arguments>]");
 
-		createTournament(room, params.shift(), params.shift(), config.istournamentsrated, params, this);
+		createTournament(room, params.shift(), params.shift(), config.isTournamentsRated, params, this);
 	} else {
 		var tournament = getTournament(room.title);
 		if (!tournament)
@@ -716,13 +733,13 @@ CommandParser.commands.tournament = function (paramString, room, user) {
 			commandHandler = typeof commands.basic[cmd] === 'string' ? commands.basic[commands.basic[cmd]] : commands.basic[cmd];
 
 		if (commands.creation[cmd]) {
-			if (!user.can('tournaments', null, room))
+			if (!user.can('tournaments', room))
 				return this.sendReply(cmd + " -  Access denied.");
 			commandHandler = typeof commands.creation[cmd] === 'string' ? commands.creation[commands.creation[cmd]] : commands.creation[cmd];
 		}
 
 		if (commands.moderation[cmd]) {
-			if (!user.can('tournamentsmoderation', null, room))
+			if (!user.can('tournamentsmoderation', room))
 				return this.sendReply(cmd + " -  Access denied.");
 			commandHandler = typeof commands.moderation[cmd] === 'string' ? commands.moderation[commands.moderation[cmd]] : commands.moderation[cmd];
 		}

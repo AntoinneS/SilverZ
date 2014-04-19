@@ -34,7 +34,7 @@
 		ValidatorProcess.prototype.active = true;
 		ValidatorProcess.processes = [];
 		ValidatorProcess.spawn = function() {
-			var num = config.validatorProcesses || 1;
+			var num = Config.validatorProcesses || 1;
 			for (var i = 0; i < num; ++i) {
 				this.processes.push(new ValidatorProcess());
 			}
@@ -108,7 +108,7 @@
 /*} else {
 	require('sugar');
 	global.fs = require('fs');
-	global.config = require('./config/config.js');
+	global.Config = require('./config/config.js');
 
 	process.on('uncaughtException', function (err) {
 		require('./crashlogger.js')(err, 'A team validator process');
@@ -141,8 +141,8 @@
 			name = name.substr(1);
 		}
 		if (name.length > 18) name = name.substr(0,18);
-		if (config.nameFilter) {
-			name = config.nameFilter(name);
+		if (Config.nameFilter) {
+			name = Config.nameFilter(name);
 		}
 		return name.trim();
 	};*/
@@ -176,12 +176,7 @@
 
 		if (!validators[format]) validators[format] = new Validator(format);
 		var parsedTeam = [];
-		try {
-			parsedTeam = Tools.fastUnpackTeam(message.substr(pipeIndex2 + 1));
-		} catch (e) {
-			respond(id, false, "Your team was invalid and could not be parsed.");
-			return;
-		}
+		parsedTeam = Tools.fastUnpackTeam(message.substr(pipeIndex2 + 1));
 		var problems = validators[format].validateTeam(parsedTeam);
 		if (problems && problems.length) {
 			respond(id, false, problems.join('\n'));
@@ -499,7 +494,7 @@ var Validator = (function() {
 					}
 				}
 			}
-			if (set.level < template.evoLevel) {
+			if (banlistTable['illegal'] && set.level < template.evoLevel) {
 				// FIXME: Event pokemon given at a level under what it normally can be attained at gives a false positive
 				problems.push(name+" must be at least level "+template.evoLevel+".");
 			}
@@ -541,7 +536,10 @@ var Validator = (function() {
 			problems = problems.concat(format.validateSet.call(tools, set, format)||[]);
 		}
 
-		if (!problems.length) return false;
+		if (!problems.length) {
+			if (set.forcedLevel) set.level = set.forcedLevel;
+			return false;
+		}
 		return problems;
 	};
 

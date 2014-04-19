@@ -93,9 +93,7 @@ if (!fs.existsSync('./config/config.js')) {
  * Load configuration
  *********************************************************/
 
-global.config = require('./config/config.js');
-global.Config = config;
-
+global.Config = require('./config/config.js');
 
 var watchFile = function() {
 	try {
@@ -105,19 +103,19 @@ var watchFile = function() {
 	}
 };
 
-if (config.watchconfig) {
+if (Config.watchConfig) {
 	watchFile('./config/config.js', function(curr, prev) {
 		if (curr.mtime <= prev.mtime) return;
 		try {
 			delete require.cache[require.resolve('./config/config.js')];
-			config = require('./config/config.js');
+			Config = require('./config/config.js');
 			console.log('Reloaded config/config.js');
 		} catch (e) {}
 	});
 }
 
 if (process.argv[2] && parseInt(process.argv[2])) {
-	config.port = parseInt(process.argv[2]);
+	Config.port = parseInt(process.argv[2]);
 }
 
 global.ResourceMonitor = {
@@ -339,11 +337,6 @@ global.string = function(str) {
 	if (typeof str === 'string' || typeof str === 'number') return ''+str;
 	return '';
 };
-/*********************************************************
- * Start networking processes to be connected to
- *********************************************************/
- 
-global.Sockets = require('./sockets.js');
 
 /**
  * Converts any variable to an integer (numbers get floored, non-numbers
@@ -356,13 +349,6 @@ global.clampIntRange = function(num, min, max) {
 	if (max !== undefined && num > max) num = max;
 	return num;
 };
-try {
-	global.Dnsbl = require('./dnsbl.js');
-} catch (e) {
-	global.Dnsbl = {query:function(){}};
-}
-
-global.Cidr = require('./cidr.js');
 
 global.LoginServer = require('./loginserver.js');
 
@@ -384,26 +370,37 @@ global.Simulator = require('./simulator.js');
 
 global.Tournaments = require('./tournaments/frontend.js');
 
-if (config.crashguard) {
-	// graceful crash - allow current battles to finish before restarting
-	var lastCrash = 0;
-	process.on('uncaughtException', function(err) {
-		var dateNow = Date.now();
-		var quietCrash = require('./crashlogger.js')(err, 'The main process');
-		quietCrash = quietCrash || ((dateNow - lastCrash) <= 1000 * 60 * 5);
-		lastCrash = Date.now();
-		if (quietCrash) return;
-		var stack = (""+err.stack).split("\n").slice(0,2).join("<br />");
-		if (Rooms.lobby) {
-			Rooms.lobby.addRaw('<div class="broadcast-red"><b>THE SERVER HAS CRASHED:</b> '+stack+'<br />Please restart the server.</div>');
-			Rooms.lobby.addRaw('<div class="broadcast-red">You will not be able to talk in the lobby or start new battles until the server restarts.</div>');
-		}
-		config.modchat = 'crash';
-		Rooms.global.lockdown = true;
-	});
+try {
+	global.Dnsbl = require('./dnsbl.js');
+} catch (e) {
+	global.Dnsbl = {query:function(){}};
 }
 
+global.Cidr = require('./cidr.js');
 
+// graceful crash - allow current battles to finish before restarting
+var lastCrash = 0;
+process.on('uncaughtException', function(err) {
+	var dateNow = Date.now();
+	var quietCrash = require('./crashlogger.js')(err, 'The main process');
+	quietCrash = quietCrash || ((dateNow - lastCrash) <= 1000 * 60 * 5);
+	lastCrash = Date.now();
+	if (quietCrash) return;
+	var stack = (""+err.stack).split("\n").slice(0,2).join("<br />");
+	if (Rooms.lobby) {
+		Rooms.lobby.addRaw('<div class="broadcast-red"><b>THE SERVER HAS CRASHED:</b> '+stack+'<br />Please restart the server.</div>');
+		Rooms.lobby.addRaw('<div class="broadcast-red">You will not be able to talk in the lobby or start new battles until the server restarts.</div>');
+	}
+	Config.modchat.chat = 'crash';
+	Rooms.global.lockdown = true;
+});
+
+/*********************************************************
+ * Start networking processes to be connected to
+ *********************************************************/
+
+global.Sockets = require('./sockets.js');
+global.bot = require('./source/bot.js').bot();
 
 /*********************************************************
  * Set up our last global
@@ -437,8 +434,9 @@ fs.readFile('./config/ipbans.txt', function (err, data) {
 	Users.checkRangeBanned = Cidr.checker(rangebans);
 });
 
+global.Spamroom = require('./spamroom.js');
 
-// Uptime Recording
+// uptime recording
 fs.readFile('./logs/uptime.txt', function (err, uptime) {
 	if (!err) global.uptimeRecord = parseInt(uptime, 10);
 	global.uptimeRecordInterval = setInterval(function () {
@@ -448,11 +446,7 @@ fs.readFile('./logs/uptime.txt', function (err, uptime) {
 	}, (1).hour());
 });
 
-/*********************************************************
- * Loading Server files
- *********************************************************/
-
-
+// load src files
 try {
 	global.customcommands = require('./src/custom-commands.js');
 	global.trainercards = require('./src/trainer-cards.js');

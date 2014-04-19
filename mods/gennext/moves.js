@@ -592,6 +592,10 @@ exports.BattleMovedex = {
 	- they're already affected by Soundproof, also, ghosts can hear
 	  sounds
 	******************************************************************/
+	boomburst: {
+		inherit: true,
+		affectedByImmunities: false
+	},
 	hypervoice: {
 		inherit: true,
 		affectedByImmunities: false
@@ -711,7 +715,7 @@ exports.BattleMovedex = {
 			accuracy: 1
 		},
 		onModifyMove: function(move, user) {
-			var GossamerWingUsers = {"Butterfree":1, "Masquerain":1, "Beautifly":1, "Mothim":1, "Lilligant":1};
+			var GossamerWingUsers = {"Butterfree":1, "Masquerain":1, "Beautifly":1, "Mothim":1, "Lilligant":1, "Vivillon":1};
 			if (user.item === 'stick' && GossamerWingUsers[user.template.species]) {
 				move.boosts = {
 					spa: 1,

@@ -35,10 +35,10 @@ module.exports = (function() {
 
 	var getLoginServer = function(action) {
 		var uri;
-		if (config.loginservers) {
-			uri = config.loginservers[action] || config.loginservers[null];
+		if (Config.loginServers) {
+			uri = (Config.loginServers[action] && Config.loginServers[action].uri) || (Config.loginServers[null] && Config.loginServers[null].uri) || Config.loginServer.uri;
 		} else {
-			uri = config.loginserver;
+			uri = Config.loginServer.uri;
 		}
 		if (!uri) {
 			console.log('ERROR: No login server specified for action: ' + action);
@@ -74,7 +74,7 @@ module.exports = (function() {
 				dataString += '&'+i+'='+encodeURIComponent(''+data[i]);
 			}
 		}
-		var req = http.get(url.parse(this.uri+'action.php?act='+action+'&serverid='+config.serverid+'&servertoken='+config.servertoken+'&nocache='+new Date().getTime()+dataString), function(res) {
+		var req = http.get(url.parse(this.uri+'action.php?act='+action+'&serverid='+Config.serverId+'&servertoken='+Config.serverToken+'&nocache='+new Date().getTime()+dataString), function(res) {
 			var buffer = '';
 			res.setEncoding('utf8');
 
@@ -139,7 +139,7 @@ module.exports = (function() {
 		}
 
 		this.requestStart(requests.length);
-		var postData = 'serverid='+config.serverid+'&servertoken='+config.servertoken+'&nocache='+new Date().getTime()+'&json='+encodeURIComponent(JSON.stringify(requests))+'\n';
+		var postData = 'serverid='+Config.serverId+'&servertoken='+Config.serverToken+'&nocache='+new Date().getTime()+'&json='+encodeURIComponent(JSON.stringify(requests))+'\n';
 		var requestOptions = url.parse(this.uri+'action.php');
 		requestOptions.method = 'post';
 		requestOptions.headers = {
