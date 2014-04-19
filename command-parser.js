@@ -164,7 +164,7 @@ var parse = exports.parse = function(message, room, user, connection, levelsDeep
 				return true;
 			},
 			
-
+                        canBroadcast: function() {
 				// default
 				if (broadcast) {
 					message = this.canTalk(message);
