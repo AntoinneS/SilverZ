@@ -1,0 +1,409 @@
+/**
+ * Custom CSS declarations
+ *
+ * If your server is registered, you can create a file named `custom.css`
+ * in the `config` directory and populate it with CSS rules to override the
+ * normal client styles, when the client is connected to your server. In
+ * other words, you can use this facility to introduce a custom theme for
+ * your server.
+ */
+#header {
+	background: url("http://ts3.mm.bing.net/th?id=HN.608017741132795466&pid=15.1")
+}
+
+.message-pm {
+color: #FFFFFF;
+}
+.pm-log {
+min-height: 100px;
+max-height: 300px;
+background: #000000
+color: #FFFFFF;
+word-wrap: break-word;
+border: 1px solid #FFFFFF;
+border-top: 0;
+border-bottom: 0;
+overflow: auto;
+}
+.pm-window h3 {
+background: #000000;
+color: #FFFFFF;
+margin: 0;
+padding: 2px 5px;
+font-size: 11pt;
+border: 1px solid #FFFFFF;
+border-top-left-radius: 5px;
+border-top-right-radius: 5px;
+cursor: pointer;
+}
+.pm-log-add {
+border: 1px solid #FFFFFF;
+border-bottom-left-radius: 5px;
+border-bottom-right-radius: 5px;
+background: #000000;
+}
+.pm-window. focused h3 {
+background: #000000;
+color: #FFFFFF;
+cursor: default;
+}
+.pm-window. focused .pm-log-add {
+background: #000000
+}
+.pm-window.focused h3, .pm-window.focused h3:hover {
+.pm-window h3 {
+background: #000000;
+color: #FFFFFF;
+margin: 0;
+padding: 2px 5px;
+font-size: 11pt;
+border: 1px solid #FFFFFF;
+border-top-left-radius: 5px;
+border-top-right-radius: 5px;
+cursor: pointer;
+}
+.pm-window.focused h3, .pm-window.focused .pm-log, .pm-window.focused .pm-log-add {
+border: 1px solid #AAAAAA;
+border-bottom-left-radius: 5px;
+border-bottom-right-radius: 5px;
+background: #000000
+}
+ 
+.tabbar a.button {
+background: #000000;
+color: #FFFFFF;
+}
+ 
+.tabbar a.button.cur,.tabbar a.button.cur:hover {
+color: #FFFFFF;
+background: #000000;
+box-shadow: none;
+border-color: #AAAAAA;
+border-bottom: 0;
+cursor: default;
+padding-top: 3px;
+padding-bottom: 5px;
+top: 0px;
+}
+
+body {
+	background: #C0C0C0 none;
+}
+
+.mainmenuwrapper {
+	color: #C0C0C0;
+	font-size: 11pt;
+	font-family: Verdana,Helvetica,Arial,sans-serif;
+	background: #3f2646 url("http://i.imgur.com/wcDHfMj.jpg") no-repeat scroll right top;
+}
+.chat-log {
+	font-size: 12px;
+	background: #bdbdbd url("http://fc06.deviantart.net/fs47/f/2009/180/e/8/Scizor_by_GalladeBlades.png") no-repeat scroll right bottom;
+	color: #000;
+	overflow: auto;
+}
+
+.menugroup .button:hover {
+  color: #FFF;
+  background: #404040;
+}
+ 
+.menugroup .button {
+  color: #FFF;
+  background: #000;
+}
+ 
+.menugroup button.big {
+  color: #FFF;
+  background: #000;
+  width: 230px;
+  padding: 6px 7px 6px 7px;
+  font-size: 14pt;
+}
+
+.ps-room.ps-room-light {
+	color: black;
+}
+
+.chat-log-add {
+	position: absolute;
+	bottom: 0px;
+	left: 0px;
+	right: 0px;
+	min-height: 36px;
+	padding: 3px 4px 0px;
+	border-top: 1px solid rgb(72, 61, 139);
+}
+
+.mainmenufooter small:after {
+	content: "PokemonDB.net server by PokemasterDb";
+	text-shadow: 0 1px black;
+	position: absolute;
+	left: 0px;
+	top: -40px;
+	width: 200px;
+}
+
+.battle-log {
+	position: absolute;
+	text-align: left;
+	border: 1px solid #C0C0C0;
+	background: #686868;
+	color: black;
+	top: 9px;
+	left: 640px;
+	right: -1px;
+	height: 360px;
+	font-family: Verdana,sans-serif;
+	font-size: 10pt;
+	overflow: auto;
+	overflow-y: scroll;
+	-webkit-overflow-scrolling: touch;
+	overflow-scrolling: touch;
+}
+
+.message-pm {
+	color: #383838;
+}
+
+.setchart input:focus, .setchart-nickname input:focus, .statform input.inputform:focus, .textbox:focus {
+	outline: 0px none;
+	border: 1px solid rgb(0, 68, 136);
+	box-shadow: 0px 1px 2px rgb(210, 210, 210) inset, 0px 0px 5px rgb(34, 102, 170);
+	background: none repeat scroll 0% 0% rgb(255, 255, 255);
+}
+
+.tabbar {
+	bottom: 0;
+}
+
+.userbar {
+	top: 18px;
+}
+
+.userbar .username {
+	text-shadow: none;
+	text-shadow: 1px 1px black;
+}
+
+.userbar:before {
+	display: block;
+	content:"";
+	width:80px;
+	height: 32px;
+	float: right;
+	position: relative;
+	top: -9px;
+}
+
+.icon-user {
+	display:none;
+}
+
+.maintabbarbottom {
+	background: linear-gradient(to bottom, rgba(0,0,0,.6) 0%, rgba(0,0,0,0) 100%);
+	border: none;
+	box-shadow: none;
+	z-index:2;
+}
+
+.header {
+	height: 56px;
+	background: #161616;
+}
+
+.header .logo {
+	float: left;
+	margin: 7px 0px 0 2px;
+}
+
+
+.userlist,
+.userlist li {
+	display: block;
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+	text-align: left;
+}
+.userlist {
+	border-left: 1px solid #909090;
+	min-height: 100%;
+	background: #808080;
+}
+.userlist li {
+	border-bottom: 1px solid #B0B0B0;
+	height: 19px;
+	font: 10pt Verdana, sans-serif;
+	white-space: nowrap;
+}
+.userlist li em.group {
+	font-style: normal;
+	font-size: 8pt;
+	color: #a066aa;
+	display: block;
+	float: left;
+	text-align: center;
+	padding: 1px 0 0 1px;
+	width: 14px;
+}
+.userlist li button {
+	box-sizing: border-box;
+	display: block;
+	height: auto;
+	background: transparent;
+	border: 0;
+	padding: 0;
+	margin: 0;
+	height: 19px;
+	width: 100%;
+	white-space: nowrap;
+	font: 10pt Verdana, sans-serif;
+	text-align: left;
+	cursor: pointer;
+}
+.userlist li button:hover {
+	background: #C0C0C0;
+}
+.userlist li button:active {
+	background: #C0C0C0;
+}
+.userlist li.cur {
+	background: #C0C0C0;
+}
+.userlist li.cur button,
+.userlist li.cur button:hover {
+	background: #C0C0C0;
+	margin: 0 0 0 -1px;
+}
+.tournament-title {
+text-decoration: underline overline;
+background: url(http://i.imgur.com/rFSFXGg.png);
+color: white;
+font-family: Georgia;
+}
+ 
+.tournament-status, .tournament-toggle {
+background: url(http://i.imgur.com/PCS1aNk.png);
+color: white
+}
+.tournament-box {
+background: url("http://i.imgur.com/Q8vHT0Y.png");
+}
+
+.tournament-bracket {
+background: url("http://i.imgur.com/Q8vHT0Y.png");
+}
+
+.tournament-message-end-bracket {
+font-family: Georgia;
+}
+.tournament-message-end-bracket-overflowing {
+font-family: Georgia;
+}
+.tournament-bracket-tree-node-match-team {
+font-family: Georgia;
+}
+.tournament-wrapper {
+font-family: Georgia;
+}
+ .tournament-join,
+.tournament-leave {
+	-moz-box-shadow:inset 0px 1px 6px 0px #ffffff;
+	-webkit-box-shadow:inset 0px 1px 6px 0px #ffffff;
+	box-shadow:inset 0px 1px 6px 0px #ffffff;
+	background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #f9f9f9), color-stop(1, #e9e9e9) );
+	background:-moz-linear-gradient( center top, #f9f9f9 5%, #e9e9e9 100% );
+	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#f9f9f9', endColorstr='#e9e9e9');
+	background-color:#f9f9f9;
+	-webkit-border-top-left-radius:42px;
+	-moz-border-radius-topleft:42px;
+	border-top-left-radius:42px;
+	-webkit-border-top-right-radius:42px;
+	-moz-border-radius-topright:42px;
+	border-top-right-radius:42px;
+	-webkit-border-bottom-right-radius:42px;
+	-moz-border-radius-bottomright:42px;
+	border-bottom-right-radius:42px;
+	-webkit-border-bottom-left-radius:42px;
+	-moz-border-radius-bottomleft:42px;
+	border-bottom-left-radius:42px;
+	text-indent:0px;
+	border:2px solid #dcdcdc;
+	display:inline-block;
+	color:#666666;
+	font-family:Arial;
+	font-size:15px;
+	font-weight:bold;
+	font-style:normal;
+	height:39px;
+	line-height:39px;
+	width:72px;
+	text-decoration:none;
+	text-align:center;
+	text-shadow:1px 1px 0px #ffffff;
+}
+
+.tournament-join:hover,
+.tournament-leave:hover {
+	background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #e9e9e9), color-stop(1, #f9f9f9) );
+	background:-moz-linear-gradient( center top, #e9e9e9 5%, #f9f9f9 100% );
+	filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#e9e9e9', endColorstr='#f9f9f9');
+	background-color:#e9e9e9;
+}
+
+.tournament-join.active,
+.tournament-leave.active {
+	position:relative;
+	top:1px;
+}
+
+/* =======================================================
+::			  			New		                    ::
+======================================================= */
+
+
+.pinkbutton {
+	-moz-box-shadow:inset 50px 1px 4px 37px #f740eb;
+	-webkit-box-shadow:inset 50px 1px 4px 37px #f740eb;
+	box-shadow:inset 50px 1px 4px 37px #f740eb;
+	background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #e65cd1), color-stop(1, #e65cd1) );
+	background:-moz-linear-gradient( center top, #e65cd1 5%, #e65cd1 100% );
+	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#e65cd1', endColorstr='#e65cd1');
+	background-color:#e65cd1;
+	-webkit-border-top-left-radius:6px;
+	-moz-border-radius-topleft:6px;
+	border-top-left-radius:6px;
+	-webkit-border-top-right-radius:0px;
+	-moz-border-radius-topright:0px;
+	border-top-right-radius:0px;
+	-webkit-border-bottom-right-radius:6px;
+	-moz-border-radius-bottomright:6px;
+	border-bottom-right-radius:6px;
+	-webkit-border-bottom-left-radius:0px;
+	-moz-border-radius-bottomleft:0px;
+	border-bottom-left-radius:0px;
+	text-indent:0;
+	border:1px solid #fc41e0;
+	display:inline-block;
+	color:#fafaff;
+	font-family:Arial;
+	font-size:15px;
+	font-weight:bold;
+	font-style:normal;
+	height:31px;
+	line-height:31px;
+	width:69px;
+	text-decoration:none;
+	text-align:center;
+	text-shadow:-3px -3px 15px #db3de3;
+}
+.pinkbutton:hover {
+	background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #e65cd1), color-stop(1, #e65cd1) );
+	background:-moz-linear-gradient( center top, #e65cd1 5%, #e65cd1 100% );
+	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#e65cd1', endColorstr='#e65cd1');
+	background-color:#e65cd1;
+}.pinkbutton:active {
+	position:relative;
+	top:1px;
+}
