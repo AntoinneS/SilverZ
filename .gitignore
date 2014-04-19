@@ -1,15 +1,8 @@
-<<<<<<< HEAD
-/logs/*
-/node_modules
-npm-debug.log
-
-=======
 /config/*
 /logs/*
 /node_modules
 npm-debug.log
 /config/bannedwords.txt
->>>>>>> upstream/master
 
 # boilerplate #
 ###############
@@ -52,7 +45,4 @@ local_settings.py
 .svn
 
 pip-log.txt
-<<<<<<< HEAD
-=======
 
->>>>>>> upstream/master
