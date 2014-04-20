@@ -591,10 +591,6 @@
              CommandParser.uncacheTree('./src/stuff/access.js');
              sysop = require('./sysop.js').sysopOperation();
 
-             this.sendReply('Reloading base code...');
-             CommandParser.uncacheTree('./src/source.js');
-             source = require('./source.js');
-
              this.sendReply('Reloading edits.js...');
              CommandParser.uncacheTree('./src/stuff/edits.js');
              edits = require('./edits.js').edits();
