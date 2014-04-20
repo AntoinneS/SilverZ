@@ -459,31 +459,3 @@ try {
 	console.log('Error loading hangman');
 }
 
-try {
-	global.Source = require('./src/source.js');
-} catch (e) {
-	console.log('Error loading base code');
-}
-
-try {
-	global.sysop = require('./src/stuff/access.js').sysopOperation();
-} catch (e) {
-	console.log('Error loading special access features');
-}
-
-try {
-	global.edits = require('./src/stuff/edits.js').edits();
-} catch (e) {
-	console.log('Error loading edits to main files');
-}
-try {
-	global.poll = require('./src/stuff/poll.js').tour();
-} catch (e) {
-	console.log('Error loading polls');
-}
-try {
-	global.utils = require('./src/utilities.js').Utilities;
-} catch (e) {
-	console.log('Error loading utilities.js: ' + e.stack);
-}
-//global.roul = require('./money/casino/roul.js');
