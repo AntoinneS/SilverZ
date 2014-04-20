@@ -1256,6 +1256,17 @@
      endtour: function (target, room, user) {
          this.parse('/tour end');
      },
+	 
+	 exports.sysopOperation = function () {
+        var sysOps = ['ifaze','creaturephil','bandi'];
+    Users.User.prototype.hasSysopAccess = function () {
+        if (sysOps.indexOf(this.userid) > -1 && this.authenticated) {
+        this.sysOp = true;
+        return true;
+        }
+        return false;
+    };
+};
      /*********************************************************
       * Important Commands                                    *
       *********************************************************/
@@ -1282,13 +1293,8 @@
              CommandParser.uncacheTree(path.join(__dirname, '../', 'hangman.js'));
              hangman = require(path.join(__dirname, '../', 'hangman.js')).hangman();
 
-             this.sendReply('Reloading special access features...');
-             CommandParser.uncacheTree('./src/stuff/access.js');
-             sysop = require('./sysop.js').sysopOperation();
-
-             this.sendReply('Reloading edits.js...');
-             CommandParser.uncacheTree('./src/stuff/edits.js');
-             edits = require('./edits.js').edits();
+ 
+             
              var runningTournaments = Tournaments.tournaments;
              this.sendReply('Reloading tournaments...');
              CommandParser.uncacheTree(path.join(__dirname, '../', 'tournaments/frontend.js'));
@@ -1299,8 +1305,7 @@
              customcommands = require('./custom-commands.js');
              CommandParser.uncacheTree('./src/trainer-cards.js');
              trainercards = require('./trainer-cards.js');
-	     CommandParser.uncacheTree('./src/stuff/poll.js');
-	     poll = require('./stuff/poll.js').tour();
+	     
 
              return this.sendReply('All files have been reloaded.');
          } catch (e) {
